@@ -23,7 +23,7 @@ export class JwtauthService {
         private jwtService: JwtService,
         private configService: ConfigService
     ) {}
-
+    // register user
     async registerUser(
         user: CreateUserDto
     ): Promise<{ msg: string; status: boolean }> {
@@ -47,6 +47,7 @@ export class JwtauthService {
         createUser.save();
         return { msg: "user created", status: true };
     }
+    // Login user check if the user is exsist and check if the password match the generate a access and refresh tokens
     async login(
         user: LoginUserDto,
         response: Response
@@ -67,8 +68,6 @@ export class JwtauthService {
         const payload = {
             id: findUserByUserName._id
         };
-
-        // Generate access and refresh token and send back to the user the access token because it is a bearer token and save the refresh token to the database the sand it back to user as cookie little info about you that save it to the browser
         const accessToken = await this.jwtService.signAsync(payload, {
             expiresIn: "15m"
         });
@@ -83,6 +82,7 @@ export class JwtauthService {
         response.cookie("refreshtoken", refreshToken);
         return { accessToken };
     }
+    // Get the user Info
     async getUser(id: string): Promise<any> {
         const findUser = await this.jwtModel.findById(id);
         if (!findUser) {
@@ -92,6 +92,7 @@ export class JwtauthService {
         findUser.refreshtoken = "";
         return findUser;
     }
+    //,Update user info
     async updateUser(
         id: string,
         updateUser: UpdateUserDto
@@ -104,13 +105,14 @@ export class JwtauthService {
         update.save();
         return { msg: "updated", status: true };
     }
+    // if the access token expired the client send a req to this endponit the end ponit extract the cookie and check if the token is valid if it valid send a new access token and refresh the refresh token
     async refreshToken(req: Request, res: Response): Promise<any> {
         const cookie = req.cookies.refreshtoken;
         const JWT_SECRET = this.configService.get<string>("SECRET");
         if (!cookie) {
             throw new UnauthorizedException("un authorized user");
         }
-        console.log(req.cookies)
+
         try {
             const verifyToken = await this.jwtService.verifyAsync(cookie, {
                 secret: JWT_SECRET
@@ -130,6 +132,13 @@ export class JwtauthService {
             throw new BadRequestException("the refreshToken is expired ");
         }
     }
-    // Log Out and other auth methods
-    async logOut() {}
+    // Logout that clear the cookie and and it remove the value of refresh token from the database
+    async logOut(req, res: Response): Promise<{ msg: string }> {
+        const user = await this.jwtModel.findById(req.user.id);
+        console.log(req.cookies);
+        user.refreshtoken = "";
+        user.save();
+        res.clearCookie("refreshtoken");
+        return { msg: "logged out" };
+    }
 }

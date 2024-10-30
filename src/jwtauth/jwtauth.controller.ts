@@ -52,6 +52,14 @@ export class JwtauthController {
         @Req() req: Request,
         @Res({ passthrough: true }) res: Response
     ): Promise<any> {
-        return this.jwtAuthService.refreshToken(req,res);
+        return this.jwtAuthService.refreshToken(req, res);
+    }
+    @UseGuards(JwtGuard)
+    @Get("logout")
+    async logOut(
+        @Req() req,
+        @Res({ passthrough: true }) res: Response
+    ): Promise<{ msg: string }> {
+        return this.jwtAuthService.logOut(req, res);
     }
 }

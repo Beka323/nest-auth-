@@ -36,6 +36,7 @@ export class JwtauthService {
         if (findUserByEmail || findUserByUserName) {
             throw new ConflictException("user already exisit");
         }
+
         const salt = await bcrypt.genSalt(10);
         const hashPwd = await bcrypt.hash(user.password, salt);
         const newUser = {
@@ -65,12 +66,14 @@ export class JwtauthService {
         if (!match) {
             throw new BadRequestException("incorrect password");
         }
+
         const payload = {
             id: findUserByUserName._id
         };
         const accessToken = await this.jwtService.signAsync(payload, {
             expiresIn: "15m"
         });
+
         const refreshToken = await this.jwtService.signAsync(payload, {
             expiresIn: "7d"
         });
@@ -108,7 +111,13 @@ export class JwtauthService {
     // if the access token expired the client send a req to this endponit the end ponit extract the cookie and check if the token is valid if it valid send a new access token and refresh the refresh token
     async refreshToken(req: Request, res: Response): Promise<any> {
         const cookie = req.cookies.refreshtoken;
-        const JWT_SECRET = this.configService.get<string>("SECRET");
+        const JWT_SECRET = this.configService.get("JWT_SECRET");
+        const ACCESS_TOKEN_SECRET = this.configService.get<string>(
+            "ACCESS_TOKEN_SECRET"
+        );
+        const REFRESH_TOKEN_SECRET = this.configService.get(
+            "REFRESH_TOKEN_SECRET"
+        );
         if (!cookie) {
             throw new UnauthorizedException("un authorized user");
         }

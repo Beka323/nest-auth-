@@ -1,8 +1,9 @@
 import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { MongooseModule } from "@nestjs/mongoose";
-import { JwtauthModule } from './jwtauth/jwtauth.module';
-import { SessionModule } from './session/session.module';
+import { JwtauthModule } from "./jwtauth/jwtauth.module";
+import { SessionModule } from "./session/session.module";
+
 @Module({
     imports: [
         ConfigModule.forRoot({
